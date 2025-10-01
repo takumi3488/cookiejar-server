@@ -1,17 +1,13 @@
 # cookiejar-server
 
-MoneyForward用のCookie保存サーバー
-
 ## 概要
 
-このサーバーは、ブラウザ拡張機能から送信されたCookieをPostgreSQLデータベースに保存するためのREST APIサーバーです。
-元々は [mf-go](https://github.com/takumi3488/mf-go) リポジトリの `cmd/jar` として存在していましたが、独立したリポジトリとして分離されました。
+CookieをPostgreSQLデータベースに保存するためのREST APIサーバー
 
 ## 機能
 
 - Cookie情報の保存（Upsert）
 - 保存されたCookieの取得
-- CORS対応（MoneyForward向け）
 
 ## アーキテクチャ
 
