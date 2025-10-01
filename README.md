@@ -41,6 +41,7 @@ POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=password
 POSTGRES_DB=cookiejar
+ALLOW_ORIGINS=http://localhost:3000
 ```
 
 ### データベースの初期化
@@ -70,7 +71,7 @@ Cookie情報を保存します。
   {
     "name": "cookie_name",
     "value": "cookie_value",
-    "domain": ".moneyforward.com",
+    "domain": ".google.com",
     "path": "/",
     "secure": true,
     "httpOnly": true,
@@ -93,7 +94,3 @@ Cookie情報を保存します。
 - [Fiber v3](https://github.com/gofiber/fiber) - Webフレームワーク
 - [SQLC](https://github.com/sqlc-dev/sqlc) - 型安全なSQLコード生成
 - PostgreSQL - データベース
-
-## ライセンス
-
-元のプロジェクト [mf-go](https://github.com/takumi3488/mf-go) から分離

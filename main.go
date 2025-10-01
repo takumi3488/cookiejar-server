@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -37,8 +38,12 @@ func main() {
 
 	// 新しいFiberアプリを初期化
 	app := fiber.New()
+
+	// 環境変数からAllowOriginsを取得
+	allowOrigins := strings.Split(os.Getenv("ALLOW_ORIGINS"), ",")
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://moneyforward.com"},
+		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
