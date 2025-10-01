@@ -143,7 +143,9 @@ func TestCookieHandler_StoreCookies(t *testing.T) {
 			// レスポンスボディ確認
 			respBody, _ := io.ReadAll(resp.Body)
 			var gotResponse map[string]interface{}
-			json.Unmarshal(respBody, &gotResponse)
+			if err := json.Unmarshal(respBody, &gotResponse); err != nil {
+				t.Fatalf("Failed to unmarshal response body: %v", err)
+			}
 
 			for key, wantValue := range tt.wantResponse {
 				if gotValue, ok := gotResponse[key]; !ok {
