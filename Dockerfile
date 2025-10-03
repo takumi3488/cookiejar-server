@@ -7,10 +7,10 @@ COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 COPY . .
-RUN go build -v -o /usr/local/bin/app ./cmd
+RUN go build -o /usr/local/bin/app ./main.go
 
 
-FROM gcr.io/distroless/static-debian12
+FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY --from=builder /usr/local/bin/app /app
 
