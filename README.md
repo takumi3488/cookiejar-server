@@ -15,7 +15,7 @@ Clean Architectureに基づいた設計：
 
 ```
 .
-├── main.go                          # エントリーポイント
+├── cmd/writer/main.go               # エントリーポイント
 ├── internal/
 │   ├── config/                      # 依存性注入コンテナ
 │   ├── domain/
@@ -53,7 +53,7 @@ psql -U postgres -d cookiejar -f schema.sql
 ### ビルドと実行
 
 ```bash
-go build -o cookiejar-server .
+go build -o cookiejar-server ./cmd/writer
 ./cookiejar-server
 ```
 
