@@ -1,5 +1,6 @@
 desc: Readerサービス E2Eテスト (gRPC)
 runners:
+  req: http://localhost:3000
   greq:
     addr: localhost:50051
     tls: false
@@ -10,14 +11,44 @@ vars:
   nonExistentHost: nonexistent.com
 
 steps:
-  # テスト1: ホスト別Cookie取得（事前にデータが必要）
-  getCookiesForHost:
+  # データ準備: example.comのCookieを保存
+  prepareTestData:
     loop:
       count: 20
-      until: 'steps.getCookiesForHost.res.status == 0'
+      until: 'steps.prepareTestData.res.status == 200'
       minInterval: 1
       maxInterval: 30
       multiplier: 1.5
+    desc: テストデータを準備（example.comのCookie）
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: test_cookie
+                value: test_value
+                domain: example.com
+                path: /
+    test: |
+      current.res.status == 200
+
+  # データ準備: test.comのCookieを保存
+  prepareTestData2:
+    desc: テストデータを準備（test.comのCookie）
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: test_cookie2
+                value: test_value2
+                domain: test.com
+                path: /
+    test: |
+      current.res.status == 200
+
+  # テスト1: ホスト別Cookie取得（事前にデータが必要）
+  getCookiesForHost:
     desc: example.comのCookieを取得
     greq:
       /proto.v1.CookieService/GetCookies:
