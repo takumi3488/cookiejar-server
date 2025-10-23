@@ -9,5 +9,4 @@ import (
 type CookieRepository interface {
 	Upsert(ctx context.Context, cookie *entity.Cookie) error
 	FindAll(ctx context.Context) ([]*entity.Cookie, error)
-	DeleteAll(ctx context.Context) error
 }

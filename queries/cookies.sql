@@ -4,6 +4,3 @@ ON CONFLICT (host) DO UPDATE SET cookies = $2;
 
 -- name: ListCookies :many
 SELECT * FROM cookies;
-
--- name: DeleteAllCookies :exec
-DELETE FROM cookies;

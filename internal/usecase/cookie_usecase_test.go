@@ -11,13 +11,8 @@ import (
 
 // モックリポジトリ
 type mockCookieRepository struct {
-	deleteAllFunc func(ctx context.Context) error
-	upsertFunc    func(ctx context.Context, cookie *entity.Cookie) error
-	findAllFunc   func(ctx context.Context) ([]*entity.Cookie, error)
-}
-
-func (m *mockCookieRepository) DeleteAll(ctx context.Context) error {
-	return m.deleteAllFunc(ctx)
+	upsertFunc  func(ctx context.Context, cookie *entity.Cookie) error
+	findAllFunc func(ctx context.Context) ([]*entity.Cookie, error)
 }
 
 func (m *mockCookieRepository) Upsert(ctx context.Context, cookie *entity.Cookie) error {
@@ -30,11 +25,10 @@ func (m *mockCookieRepository) FindAll(ctx context.Context) ([]*entity.Cookie, e
 
 func TestCookieUsecase_StoreCookies(t *testing.T) {
 	tests := []struct {
-		name       string
-		cookies    []*http.Cookie
-		deleteErr  error
-		upsertErr  error
-		wantErr    bool
+		name      string
+		cookies   []*http.Cookie
+		upsertErr error
+		wantErr   bool
 	}{
 		{
 			name: "正常に保存できる",
@@ -42,32 +36,20 @@ func TestCookieUsecase_StoreCookies(t *testing.T) {
 				{Name: "cookie1", Value: "value1"},
 				{Name: "cookie2", Value: "value2"},
 			},
-			deleteErr: nil,
 			upsertErr: nil,
 			wantErr:   false,
-		},
-		{
-			name: "DeleteAllでエラーが発生",
-			cookies: []*http.Cookie{
-				{Name: "cookie1", Value: "value1"},
-			},
-			deleteErr: errors.New("delete error"),
-			upsertErr: nil,
-			wantErr:   true,
 		},
 		{
 			name: "Upsertでエラーが発生",
 			cookies: []*http.Cookie{
 				{Name: "cookie1", Value: "value1"},
 			},
-			deleteErr: nil,
 			upsertErr: errors.New("upsert error"),
 			wantErr:   true,
 		},
 		{
 			name:      "空のCookieリスト",
 			cookies:   []*http.Cookie{},
-			deleteErr: nil,
 			upsertErr: nil,
 			wantErr:   false,
 		},
@@ -76,9 +58,6 @@ func TestCookieUsecase_StoreCookies(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &mockCookieRepository{
-				deleteAllFunc: func(ctx context.Context) error {
-					return tt.deleteErr
-				},
 				upsertFunc: func(ctx context.Context, cookie *entity.Cookie) error {
 					return tt.upsertErr
 				},

@@ -24,10 +24,6 @@ func NewCookieUsecase(cookieRepo repository.CookieRepository) CookieUsecase {
 }
 
 func (u *cookieUsecase) StoreCookies(ctx context.Context, cookies []*http.Cookie) error {
-	if err := u.cookieRepo.DeleteAll(ctx); err != nil {
-		return err
-	}
-
 	for _, cookie := range cookies {
 		c := entity.NewCookie(cookie)
 		if err := u.cookieRepo.Upsert(ctx, c); err != nil {

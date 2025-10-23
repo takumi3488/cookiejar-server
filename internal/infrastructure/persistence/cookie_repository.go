@@ -49,7 +49,3 @@ func (r *cookieRepository) FindAll(ctx context.Context) ([]*entity.Cookie, error
 	}
 	return result, nil
 }
-
-func (r *cookieRepository) DeleteAll(ctx context.Context) error {
-	return r.queries.DeleteAllCookies(ctx)
-}

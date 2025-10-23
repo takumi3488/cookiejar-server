@@ -9,15 +9,6 @@ import (
 	"context"
 )
 
-const deleteAllCookies = `-- name: DeleteAllCookies :exec
-DELETE FROM cookies
-`
-
-func (q *Queries) DeleteAllCookies(ctx context.Context) error {
-	_, err := q.db.ExecContext(ctx, deleteAllCookies)
-	return err
-}
-
 const listCookies = `-- name: ListCookies :many
 SELECT host, cookies FROM cookies
 `
