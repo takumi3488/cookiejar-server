@@ -1,0 +1,124 @@
+desc: 統合テスト - WriterからReaderへのフロー
+runners:
+  req: http://localhost:3000
+  greq:
+    addr: localhost:50051
+    tls: false
+
+vars:
+  integrationHost: integration-test.com
+
+steps:
+  # ステップ1: WriterでCookieを保存
+  storeCookies:
+    desc: WriterサービスでCookieを保存
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: auth_token
+                value: token123abc
+                path: /
+                domain: integration-test.com
+                maxAge: 7200
+                secure: true
+                httpOnly: true
+                sameSite: Strict
+              - name: user_id
+                value: user_12345
+                path: /api
+                domain: integration-test.com
+                maxAge: 3600
+                secure: false
+                httpOnly: false
+                sameSite: Lax
+    test: |
+      current.res.status == 200
+      && current.res.body.status == "success"
+      && current.res.body.count == 2
+
+  # ステップ2: Readerで保存したCookieを取得
+  retrieveCookies:
+    desc: ReaderサービスでCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: integration-test.com
+    test: |
+      current.res.status == 0
+      && current.res.message.cookies != null
+      && current.res.message.cookies != ""
+
+  # ステップ3: 単一Cookieを保存して検証
+  storeSingleCookie:
+    desc: 単一のCookieを保存
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: session
+                value: sess_xyz789
+                domain: single-test.com
+                path: /
+    test: |
+      current.res.status == 200
+      && current.res.body.count == 1
+
+  # ステップ4: 単一Cookieを取得
+  retrieveSingleCookie:
+    desc: 単一のCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: single-test.com
+    test: |
+      current.res.status == 0
+      && current.res.message.cookies != null
+      && current.res.message.cookies contains "session=sess_xyz789"
+
+  # ステップ5: 複数ドメインのCookieを保存
+  storeMultipleDomains:
+    desc: 異なるドメインのCookieを保存
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: cookie_a
+                value: value_a
+                domain: domain-a.com
+              - name: cookie_b
+                value: value_b
+                domain: domain-b.com
+              - name: cookie_c
+                value: value_c
+                domain: domain-a.com
+    test: |
+      current.res.status == 200
+      && current.res.body.count == 3
+
+  # ステップ6: domain-aのCookieを取得（Cookieを取得できる）
+  retrieveDomainA:
+    desc: domain-a.comのCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: domain-a.com
+    test: |
+      current.res.status == 0
+      && current.res.message.cookies != null
+      && current.res.message.cookies != ""
+
+  # ステップ7: domain-bのCookieを取得（1つのCookieを取得）
+  retrieveDomainB:
+    desc: domain-b.comのCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: domain-b.com
+    test: |
+      current.res.status == 0
+      && current.res.message.cookies != null
+      && current.res.message.cookies contains "cookie_b=value_b"

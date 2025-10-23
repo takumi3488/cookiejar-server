@@ -1,0 +1,90 @@
+desc: Writerサービス E2Eテスト
+runners:
+  req: http://localhost:3000
+
+steps:
+  # テスト1: Cookieの保存成功
+  storeCookies:
+    desc: POST /でCookieを保存
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: session_id
+                value: abc123def456
+                path: /
+                domain: example.com
+                maxAge: 3600
+                secure: true
+                httpOnly: true
+                sameSite: Lax
+              - name: user_pref
+                value: dark_mode
+                path: /settings
+                domain: example.com
+                maxAge: 86400
+                secure: false
+                httpOnly: false
+                sameSite: Strict
+    test: |
+      current.res.status == 200
+      && current.res.body.status == "success"
+      && current.res.body.count == 2
+
+  # テスト2: 単一Cookieの保存
+  storeSingleCookie:
+    desc: 単一のCookieを保存
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: test_cookie
+                value: test_value
+                domain: test.com
+    test: |
+      current.res.status == 200
+      && current.res.body.status == "success"
+      && current.res.body.count == 1
+
+  # テスト3: 無効なJSON形式
+  invalidJson:
+    desc: 無効なJSONを送信して400エラーを期待
+    req:
+      /:
+        post:
+          body:
+            text/plain: "invalid json"
+    test: |
+      current.res.status == 400
+      && current.res.body.error != null
+
+  # テスト4: 空のCookie配列
+  emptyCookies:
+    desc: 空のCookie配列を保存
+    req:
+      /:
+        post:
+          body:
+            application/json: []
+    test: |
+      current.res.status == 200
+      && current.res.body.status == "success"
+      && current.res.body.count == 0
+
+  # テスト5: 最小フィールドのCookie
+  minimalCookie:
+    desc: 必須フィールドのみでCookieを保存
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: minimal
+                value: minimal_value
+                domain: minimal.com
+    test: |
+      current.res.status == 200
+      && current.res.body.status == "success"
+      && current.res.body.count == 1

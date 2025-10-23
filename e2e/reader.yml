@@ -1,0 +1,53 @@
+desc: Readerサービス E2Eテスト (gRPC)
+runners:
+  greq:
+    addr: localhost:50051
+    tls: false
+
+vars:
+  testHost: example.com
+  testHost2: test.com
+  nonExistentHost: nonexistent.com
+
+steps:
+  # テスト1: ホスト別Cookie取得（事前にデータが必要）
+  getCookiesForHost:
+    desc: example.comのCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: example.com
+    test: |
+      current.res.status == 0
+      && current.res.message.cookies != null
+
+  # テスト2: 別ホストのCookie取得
+  getCookiesForHost2:
+    desc: test.comのCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: test.com
+    test: |
+      current.res.status == 0
+      && current.res.message.cookies != null
+
+  # テスト3: 存在しないホストのCookie取得（NOT_FOUNDを返す）
+  getCookiesForNonExistentHost:
+    desc: 存在しないホストのCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: nonexistent.com
+    test: |
+      current.res.status == 5  // gRPC NOT_FOUNDステータスコード
+
+  # テスト4: 空のホストパラメータ
+  getCookiesEmptyHost:
+    desc: 空のホストでCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: ""
+    test: |
+      current.res.status == 5  // gRPC NOT_FOUNDステータスコード

@@ -14,6 +14,7 @@ import (
 	"github.com/takumi3488/cookiejar-server/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
 
@@ -69,6 +70,9 @@ func main() {
 	pb.RegisterCookieServiceServer(grpcServer, &cookieServiceServer{
 		container: container,
 	})
+
+	// gRPC reflectionを有効化（開発/テスト用）
+	reflection.Register(grpcServer)
 
 	// ポート50051でリスナーを作成
 	port := os.Getenv("GRPC_PORT")
