@@ -11,8 +11,9 @@ import (
 
 // モックリポジトリ
 type mockCookieRepository struct {
-	upsertFunc  func(ctx context.Context, cookie *entity.Cookie) error
-	findAllFunc func(ctx context.Context) ([]*entity.Cookie, error)
+	upsertFunc     func(ctx context.Context, cookie *entity.Cookie) error
+	findAllFunc    func(ctx context.Context) ([]*entity.Cookie, error)
+	findByHostFunc func(ctx context.Context, host string) ([]*entity.Cookie, error)
 }
 
 func (m *mockCookieRepository) Upsert(ctx context.Context, cookie *entity.Cookie) error {
@@ -21,6 +22,13 @@ func (m *mockCookieRepository) Upsert(ctx context.Context, cookie *entity.Cookie
 
 func (m *mockCookieRepository) FindAll(ctx context.Context) ([]*entity.Cookie, error) {
 	return m.findAllFunc(ctx)
+}
+
+func (m *mockCookieRepository) FindByHost(ctx context.Context, host string) ([]*entity.Cookie, error) {
+	if m.findByHostFunc != nil {
+		return m.findByHostFunc(ctx, host)
+	}
+	return nil, nil
 }
 
 func TestCookieUsecase_StoreCookies(t *testing.T) {
@@ -75,7 +83,7 @@ func TestCookieUsecase_StoreCookies(t *testing.T) {
 
 func TestCookieUsecase_GetAllCookies(t *testing.T) {
 	tests := []struct {
-		name      string
+		name          string
 		findAllResult []*entity.Cookie
 		findAllErr    error
 		wantErr       bool

@@ -11,6 +11,8 @@ import (
 type CookieUsecase interface {
 	StoreCookies(ctx context.Context, cookies []*http.Cookie) error
 	GetAllCookies(ctx context.Context) ([]*entity.Cookie, error)
+
+	GetCookiesByHost(ctx context.Context, host string) ([]*entity.Cookie, error)
 }
 
 type cookieUsecase struct {
@@ -36,4 +38,8 @@ func (u *cookieUsecase) StoreCookies(ctx context.Context, cookies []*http.Cookie
 
 func (u *cookieUsecase) GetAllCookies(ctx context.Context) ([]*entity.Cookie, error) {
 	return u.cookieRepo.FindAll(ctx)
+}
+
+func (u *cookieUsecase) GetCookiesByHost(ctx context.Context, host string) ([]*entity.Cookie, error) {
+	return u.cookieRepo.FindByHost(ctx, host)
 }

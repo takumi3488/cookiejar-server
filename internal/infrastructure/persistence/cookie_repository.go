@@ -49,3 +49,18 @@ func (r *cookieRepository) FindAll(ctx context.Context) ([]*entity.Cookie, error
 	}
 	return result, nil
 }
+
+func (r *cookieRepository) FindByHost(ctx context.Context, host string) ([]*entity.Cookie, error) {
+	c, err := r.queries.GetCookiesByHost(ctx, host)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*entity.Cookie, 0)
+	var cookie entity.Cookie
+	if err := json.Unmarshal([]byte(c.Cookies), &cookie); err != nil {
+		return nil, err
+	}
+	result = append(result, &cookie)
+	return result, nil
+}

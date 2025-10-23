@@ -15,8 +15,9 @@ import (
 
 // モックユースケース
 type mockCookieUsecase struct {
-	storeCookiesFunc  func(ctx context.Context, cookies []*http.Cookie) error
-	getAllCookiesFunc func(ctx context.Context) ([]*entity.Cookie, error)
+	storeCookiesFunc      func(ctx context.Context, cookies []*http.Cookie) error
+	getAllCookiesFunc     func(ctx context.Context) ([]*entity.Cookie, error)
+	getCookiesByHostFunc  func(ctx context.Context, host string) ([]*entity.Cookie, error)
 }
 
 func (m *mockCookieUsecase) StoreCookies(ctx context.Context, cookies []*http.Cookie) error {
@@ -27,13 +28,20 @@ func (m *mockCookieUsecase) GetAllCookies(ctx context.Context) ([]*entity.Cookie
 	return m.getAllCookiesFunc(ctx)
 }
 
+func (m *mockCookieUsecase) GetCookiesByHost(ctx context.Context, host string) ([]*entity.Cookie, error) {
+	if m.getCookiesByHostFunc != nil {
+		return m.getCookiesByHostFunc(ctx, host)
+	}
+	return nil, nil
+}
+
 func TestCookieHandler_StoreCookies(t *testing.T) {
 	tests := []struct {
-		name           string
-		requestBody    interface{}
+		name            string
+		requestBody     interface{}
 		storeCookiesErr error
-		wantStatus     int
-		wantResponse   map[string]interface{}
+		wantStatus      int
+		wantResponse    map[string]interface{}
 	}{
 		{
 			name: "正常にCookieを保存できる",
@@ -70,8 +78,8 @@ func TestCookieHandler_StoreCookies(t *testing.T) {
 			},
 		},
 		{
-			name:           "不正なJSON形式",
-			requestBody:    "invalid json",
+			name:            "不正なJSON形式",
+			requestBody:     "invalid json",
 			storeCookiesErr: nil,
 			wantStatus:      400,
 			wantResponse: map[string]interface{}{
@@ -90,8 +98,8 @@ func TestCookieHandler_StoreCookies(t *testing.T) {
 			},
 		},
 		{
-			name:           "空のCookieリスト",
-			requestBody:    []*CookieRequest{},
+			name:            "空のCookieリスト",
+			requestBody:     []*CookieRequest{},
 			storeCookiesErr: nil,
 			wantStatus:      200,
 			wantResponse: map[string]interface{}{
