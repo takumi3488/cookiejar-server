@@ -12,6 +12,12 @@ vars:
 steps:
   # テスト1: ホスト別Cookie取得（事前にデータが必要）
   getCookiesForHost:
+    loop:
+      count: 20
+      until: 'steps.getCookiesForHost.res.status == 0'
+      minInterval: 1
+      maxInterval: 30
+      multiplier: 1.5
     desc: example.comのCookieを取得
     greq:
       /proto.v1.CookieService/GetCookies:

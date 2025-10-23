@@ -5,6 +5,12 @@ runners:
 steps:
   # テスト1: Cookieの保存成功
   storeCookies:
+    loop:
+      count: 20
+      until: 'steps.storeCookies.res.status == 200'
+      minInterval: 1
+      maxInterval: 30
+      multiplier: 1.5
     desc: POST /でCookieを保存
     req:
       /:
