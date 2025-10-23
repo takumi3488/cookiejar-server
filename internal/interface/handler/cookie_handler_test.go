@@ -15,9 +15,9 @@ import (
 
 // モックユースケース
 type mockCookieUsecase struct {
-	storeCookiesFunc      func(ctx context.Context, cookies []*http.Cookie) error
-	getAllCookiesFunc     func(ctx context.Context) ([]*entity.Cookie, error)
-	getCookiesByHostFunc  func(ctx context.Context, host string) ([]*entity.Cookie, error)
+	storeCookiesFunc     func(ctx context.Context, cookies []*http.Cookie) error
+	getAllCookiesFunc    func(ctx context.Context) ([]*entity.Cookie, error)
+	getCookiesByHostFunc func(ctx context.Context, host string) ([]*entity.Cookie, error)
 }
 
 func (m *mockCookieUsecase) StoreCookies(ctx context.Context, cookies []*http.Cookie) error {
