@@ -5,19 +5,20 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/takumi3488/cookiejar-server/internal/domain/entity"
 )
 
 // モックリポジトリ
 type mockCookieRepository struct {
-	upsertFunc     func(ctx context.Context, cookie *entity.Cookie) error
+	upsertFunc     func(ctx context.Context, cookie *entity.Cookie, updatedAt time.Time) error
 	findAllFunc    func(ctx context.Context) ([]*entity.Cookie, error)
 	findByHostFunc func(ctx context.Context, host string) ([]*entity.Cookie, error)
 }
 
-func (m *mockCookieRepository) Upsert(ctx context.Context, cookie *entity.Cookie) error {
-	return m.upsertFunc(ctx, cookie)
+func (m *mockCookieRepository) Upsert(ctx context.Context, cookie *entity.Cookie, updatedAt time.Time) error {
+	return m.upsertFunc(ctx, cookie, updatedAt)
 }
 
 func (m *mockCookieRepository) FindAll(ctx context.Context) ([]*entity.Cookie, error) {
@@ -66,7 +67,7 @@ func TestCookieUsecase_StoreCookies(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &mockCookieRepository{
-				upsertFunc: func(ctx context.Context, cookie *entity.Cookie) error {
+				upsertFunc: func(ctx context.Context, cookie *entity.Cookie, updatedAt time.Time) error {
 					return tt.upsertErr
 				},
 			}

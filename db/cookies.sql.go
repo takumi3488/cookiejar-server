@@ -7,21 +7,22 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const getCookiesByHost = `-- name: GetCookiesByHost :one
-SELECT host, cookies FROM cookies WHERE host = $1
+SELECT host, cookies, updated_at FROM cookies WHERE host = $1
 `
 
 func (q *Queries) GetCookiesByHost(ctx context.Context, host string) (Cookie, error) {
 	row := q.db.QueryRowContext(ctx, getCookiesByHost, host)
 	var i Cookie
-	err := row.Scan(&i.Host, &i.Cookies)
+	err := row.Scan(&i.Host, &i.Cookies, &i.UpdatedAt)
 	return i, err
 }
 
 const listCookies = `-- name: ListCookies :many
-SELECT host, cookies FROM cookies
+SELECT host, cookies, updated_at FROM cookies
 `
 
 func (q *Queries) ListCookies(ctx context.Context) ([]Cookie, error) {
@@ -33,7 +34,7 @@ func (q *Queries) ListCookies(ctx context.Context) ([]Cookie, error) {
 	var items []Cookie
 	for rows.Next() {
 		var i Cookie
-		if err := rows.Scan(&i.Host, &i.Cookies); err != nil {
+		if err := rows.Scan(&i.Host, &i.Cookies, &i.UpdatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -48,16 +49,17 @@ func (q *Queries) ListCookies(ctx context.Context) ([]Cookie, error) {
 }
 
 const upsertCookies = `-- name: UpsertCookies :exec
-INSERT INTO cookies (host, cookies) VALUES ($1, $2)
-ON CONFLICT (host) DO UPDATE SET cookies = $2
+INSERT INTO cookies (host, cookies, updated_at) VALUES ($1, $2, $3)
+ON CONFLICT (host) DO UPDATE SET cookies = $2, updated_at = $3
 `
 
 type UpsertCookiesParams struct {
-	Host    string `json:"host"`
-	Cookies string `json:"cookies"`
+	Host      string    `json:"host"`
+	Cookies   string    `json:"cookies"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (q *Queries) UpsertCookies(ctx context.Context, arg UpsertCookiesParams) error {
-	_, err := q.db.ExecContext(ctx, upsertCookies, arg.Host, arg.Cookies)
+	_, err := q.db.ExecContext(ctx, upsertCookies, arg.Host, arg.Cookies, arg.UpdatedAt)
 	return err
 }

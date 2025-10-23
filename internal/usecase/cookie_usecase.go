@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/takumi3488/cookiejar-server/internal/domain/entity"
 	"github.com/takumi3488/cookiejar-server/internal/domain/repository"
@@ -28,7 +29,7 @@ func NewCookieUsecase(cookieRepo repository.CookieRepository) CookieUsecase {
 func (u *cookieUsecase) StoreCookies(ctx context.Context, cookies []*http.Cookie) error {
 	for _, cookie := range cookies {
 		c := entity.NewCookie(cookie)
-		if err := u.cookieRepo.Upsert(ctx, c); err != nil {
+		if err := u.cookieRepo.Upsert(ctx, c, time.Now()); err != nil {
 			return err
 		}
 	}

@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/takumi3488/cookiejar-server/db"
 	"github.com/takumi3488/cookiejar-server/internal/domain/entity"
@@ -19,7 +20,7 @@ func NewCookieRepository(queries *db.Queries) repository.CookieRepository {
 	}
 }
 
-func (r *cookieRepository) Upsert(ctx context.Context, cookie *entity.Cookie) error {
+func (r *cookieRepository) Upsert(ctx context.Context, cookie *entity.Cookie, updatedAt time.Time) error {
 	// 今のところドメインをホストとして使用し、Cookie保存にJSONを使用
 	cookieJSON, err := json.Marshal(cookie)
 	if err != nil {
@@ -27,8 +28,9 @@ func (r *cookieRepository) Upsert(ctx context.Context, cookie *entity.Cookie) er
 	}
 
 	return r.queries.UpsertCookies(ctx, db.UpsertCookiesParams{
-		Host:    cookie.Domain,
-		Cookies: string(cookieJSON),
+		Host:      cookie.Domain,
+		Cookies:   string(cookieJSON),
+		UpdatedAt: updatedAt,
 	})
 }
 

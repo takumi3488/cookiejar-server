@@ -1,4 +1,5 @@
 CREATE TABLE cookies (
     host TEXT PRIMARY KEY,
-    cookies TEXT NOT NULL
+    cookies TEXT NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

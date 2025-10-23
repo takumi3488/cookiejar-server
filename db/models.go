@@ -4,7 +4,12 @@
 
 package db
 
+import (
+	"time"
+)
+
 type Cookie struct {
-	Host    string `json:"host"`
-	Cookies string `json:"cookies"`
+	Host      string    `json:"host"`
+	Cookies   string    `json:"cookies"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
