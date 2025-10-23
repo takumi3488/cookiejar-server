@@ -31,7 +31,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.1
+          version: latest
 
       - name: Test
         run: go test -v ./...
@@ -43,9 +43,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+
       - name: Install runn
-        run: |
-          curl -sSL https://raw.githubusercontent.com/k1LoW/runn/main/install.sh | sh
+        run: go install github.com/k1LoW/runn/cmd/runn@latest
 
       - name: Start services
         run: docker compose up -d --build
