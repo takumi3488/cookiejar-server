@@ -11,6 +11,12 @@ vars:
 steps:
   # ステップ1: WriterでCookieを保存
   storeCookies:
+    loop:
+      count: 20
+      until: 'steps.storeCookies.res.status == 200'
+      minInterval: 1
+      maxInterval: 30
+      multiplier: 1.5
     desc: WriterサービスでCookieを保存
     req:
       /:

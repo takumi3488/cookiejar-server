@@ -5,3 +5,7 @@ cookiejar-server
 *.dylib
 *.test
 *.out
+
+# Claude Code
+CLAUDE.md
+.claude/

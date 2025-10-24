@@ -31,7 +31,49 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
-          version: v2.1
+          version: latest
 
       - name: Test
         run: go test -v ./...
+
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+
+      - name: Install runn
+        run: go install github.com/k1LoW/runn/cmd/runn@latest
+
+      - name: Start services
+        run: docker compose up -d --build
+
+      - name: Run e2e tests
+        run: runn run e2e/*.yml --verbose
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
+
+  automerge:
+    runs-on: ubuntu-latest
+    needs: [test, e2e]
+    if: github.event.pull_request.user.login == 'renovate[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: automerge
+        uses: pascalgn/automerge-action@v0.16.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_LABELS: ""
