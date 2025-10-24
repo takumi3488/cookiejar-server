@@ -9,10 +9,10 @@ RUN go build -o /usr/local/bin/writer ./cmd/writer
 RUN go build -o /usr/local/bin/reader ./cmd/reader
 
 
-FROM gcr.io/distroless/static-debian12:nonroot AS writer
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:e8a4044e0b4ae4257efa45fc026c0bc30ad320d43bd4c1a7d5271bd241e386d0 AS writer
 COPY --from=builder /usr/local/bin/writer /app
 ENTRYPOINT ["/app"]
 
-FROM gcr.io/distroless/static-debian12:nonroot AS reader
+FROM gcr.io/distroless/static-debian12:nonroot@sha256:e8a4044e0b4ae4257efa45fc026c0bc30ad320d43bd4c1a7d5271bd241e386d0 AS reader
 COPY --from=builder /usr/local/bin/reader /app
 ENTRYPOINT ["/app"]
