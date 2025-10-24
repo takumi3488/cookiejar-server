@@ -1,0 +1,69 @@
+package telemetry
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+)
+
+// InitTracer は OpenTelemetry の TracerProvider を初期化します
+func InitTracer(serviceName string) (*sdktrace.TracerProvider, error) {
+	ctx := context.Background()
+
+	// OTLP HTTP exporter を作成（Jaeger用）
+	otlpEndpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if otlpEndpoint == "" {
+		otlpEndpoint = "http://jaeger:4318" // デフォルト値
+	}
+
+	exporter, err := otlptracehttp.New(ctx,
+		otlptracehttp.WithEndpoint(otlpEndpoint),
+		otlptracehttp.WithInsecure(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OTLP exporter: %w", err)
+	}
+
+	// Resource を作成
+	res, err := resource.New(ctx,
+		resource.WithAttributes(
+			semconv.ServiceName(serviceName),
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create resource: %w", err)
+	}
+
+	// TracerProvider を作成
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(res),
+	)
+
+	// グローバルに設定
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
+
+	log.Printf("OpenTelemetry initialized for service: %s, endpoint: %s", serviceName, otlpEndpoint)
+
+	return tp, nil
+}
+
+// Shutdown は TracerProvider をシャットダウンします
+func Shutdown(ctx context.Context, tp *sdktrace.TracerProvider) error {
+	if tp == nil {
+		return nil
+	}
+	return tp.Shutdown(ctx)
+}

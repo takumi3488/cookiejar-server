@@ -8,10 +8,13 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	_ "github.com/lib/pq"
 	pb "github.com/takumi3488/cookiejar-server/gen/v1"
 	"github.com/takumi3488/cookiejar-server/internal/config"
+	"github.com/takumi3488/cookiejar-server/internal/telemetry"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -44,6 +47,19 @@ func (s *cookieServiceServer) GetCookies(ctx context.Context, req *pb.GetCookies
 }
 
 func main() {
+	// OpenTelemetry の初期化
+	tp, err := telemetry.InitTracer("cookiejar-reader")
+	if err != nil {
+		log.Fatalf("Failed to initialize tracer: %v", err)
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := telemetry.Shutdown(ctx, tp); err != nil {
+			log.Printf("Failed to shutdown tracer: %v", err)
+		}
+	}()
+
 	// データベース接続を初期化
 	dbClient, err := sql.Open("postgres", fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
@@ -65,8 +81,10 @@ func main() {
 	// 依存性注入コンテナを初期化
 	container := config.NewContainer(dbClient)
 
-	// gRPCサーバーを初期化
-	grpcServer := grpc.NewServer()
+	// gRPCサーバーを初期化（otelgrpc interceptorを追加）
+	grpcServer := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+	)
 	pb.RegisterCookieServiceServer(grpcServer, &cookieServiceServer{
 		container: container,
 	})

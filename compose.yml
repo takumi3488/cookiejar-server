@@ -25,10 +25,13 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: cookiejar
       ALLOW_ORIGINS: http://localhost:3000
+      OTEL_EXPORTER_OTLP_ENDPOINT: jaeger:4318
     ports:
       - "3000:3000"
     depends_on:
       db:
+        condition: service_healthy
+      jaeger:
         condition: service_healthy
     restart: unless-stopped
 
@@ -42,10 +45,13 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: cookiejar
       GRPC_PORT: "50051"
+      OTEL_EXPORTER_OTLP_ENDPOINT: jaeger:4318
     ports:
       - "50051:50051"
     depends_on:
       db:
+        condition: service_healthy
+      jaeger:
         condition: service_healthy
     restart: unless-stopped
 
@@ -54,6 +60,7 @@ services:
     ports:
       - "16686:16686" # Jaeger UI
       - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     healthcheck:
