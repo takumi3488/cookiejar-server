@@ -128,3 +128,64 @@ steps:
       current.res.status == 0
       && current.res.message.cookies != null
       && current.res.message.cookies contains "cookie_b=value_b"
+
+  # ステップ8: 同じドメインに追加のCookieを保存（マージテスト）
+  addMoreCookiesToDomainA:
+    desc: domain-a.comに追加のCookieを保存
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: cookie_d
+                value: value_d
+                domain: domain-a.com
+              - name: cookie_e
+                value: value_e
+                domain: domain-a.com
+    test: |
+      current.res.status == 200
+      && current.res.body.count == 2
+
+  # ステップ9: domain-aのすべてのCookieを取得（4つのCookieがあるはず）
+  retrieveAllDomainACookies:
+    desc: domain-a.comのすべてのCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: domain-a.com
+    test: |
+      current.res.status == 0
+      && current.res.message.cookies != null
+      && current.res.message.cookies contains "cookie_a=value_a"
+      && current.res.message.cookies contains "cookie_c=value_c"
+      && current.res.message.cookies contains "cookie_d=value_d"
+      && current.res.message.cookies contains "cookie_e=value_e"
+
+  # ステップ10: 既存のCookieを更新（cookie_aの値を変更）
+  updateExistingCookie:
+    desc: 既存のCookieを更新
+    req:
+      /:
+        post:
+          body:
+            application/json:
+              - name: cookie_a
+                value: updated_value_a
+                domain: domain-a.com
+    test: |
+      current.res.status == 200
+      && current.res.body.count == 1
+
+  # ステップ11: 更新されたCookieを取得して確認
+  verifyUpdatedCookie:
+    desc: 更新されたCookieを取得
+    greq:
+      /proto.v1.CookieService/GetCookies:
+        message:
+          host: domain-a.com
+    test: |
+      current.res.status == 0
+      && current.res.message.cookies != null
+      && current.res.message.cookies contains "cookie_a=updated_value_a"
+      && !(current.res.message.cookies contains "cookie_a=value_a")
