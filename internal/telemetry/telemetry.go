@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -20,14 +21,23 @@ func InitTracer(serviceName string) (*sdktrace.TracerProvider, error) {
 
 	// OTLP HTTP exporter を作成（Jaeger用）
 	otlpEndpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	isSecure := false
 	if otlpEndpoint == "" {
-		otlpEndpoint = "http://jaeger:4318" // デフォルト値
+		otlpEndpoint = "jaeger:4318" // デフォルト値（HTTP）
+	} else {
+		// 環境変数からスキームを取り除き、HTTPSかどうかを判定
+		otlpEndpoint, isSecure = stripSchemeAndDetectSecure(otlpEndpoint)
 	}
 
-	exporter, err := otlptracehttp.New(ctx,
+	// エクスポーターのオプションを構築
+	opts := []otlptracehttp.Option{
 		otlptracehttp.WithEndpoint(otlpEndpoint),
-		otlptracehttp.WithInsecure(),
-	)
+	}
+	if !isSecure {
+		opts = append(opts, otlptracehttp.WithInsecure())
+	}
+
+	exporter, err := otlptracehttp.New(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OTLP exporter: %w", err)
 	}
@@ -55,7 +65,11 @@ func InitTracer(serviceName string) (*sdktrace.TracerProvider, error) {
 		propagation.Baggage{},
 	))
 
-	log.Printf("OpenTelemetry initialized for service: %s, endpoint: %s", serviceName, otlpEndpoint)
+	scheme := "http"
+	if isSecure {
+		scheme = "https"
+	}
+	log.Printf("OpenTelemetry initialized for service: %s, endpoint: %s://%s", serviceName, scheme, otlpEndpoint)
 
 	return tp, nil
 }
@@ -66,4 +80,18 @@ func Shutdown(ctx context.Context, tp *sdktrace.TracerProvider) error {
 		return nil
 	}
 	return tp.Shutdown(ctx)
+}
+
+// stripSchemeAndDetectSecure は URL からスキームを取り除き、HTTPSかどうかを返します
+func stripSchemeAndDetectSecure(endpoint string) (string, bool) {
+	// https:// の場合は secure = true
+	if stripped, ok := strings.CutPrefix(endpoint, "https://"); ok {
+		return stripped, true
+	}
+	// http:// の場合は secure = false
+	if stripped, ok := strings.CutPrefix(endpoint, "http://"); ok {
+		return stripped, false
+	}
+	// スキームなしの場合はデフォルトで HTTP (secure = false)
+	return endpoint, false
 }
