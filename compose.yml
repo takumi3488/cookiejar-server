@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:18-alpine@sha256:48c8ad3a7284b82be4482a52076d47d879fd6fb084a1cbfccbd551f9331b0e40
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -56,7 +56,7 @@ services:
     restart: unless-stopped
 
   jaeger:
-    image: jaegertracing/jaeger:latest
+    image: jaegertracing/jaeger:latest@sha256:b585df1b6299bbbd16bf7c679da30389349736e4b6bc8f4f500142a75bf26ca8
     ports:
       - "16686:16686" # Jaeger UI
       - "4317:4317"   # OTLP gRPC
