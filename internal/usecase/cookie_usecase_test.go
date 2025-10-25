@@ -13,12 +13,23 @@ import (
 // モックリポジトリ
 type mockCookieRepository struct {
 	upsertFunc     func(ctx context.Context, cookie *entity.Cookie, updatedAt time.Time) error
+	upsertManyFunc func(ctx context.Context, host string, cookies []*entity.Cookie, updatedAt time.Time) error
 	findAllFunc    func(ctx context.Context) ([]*entity.Cookie, error)
 	findByHostFunc func(ctx context.Context, host string) ([]*entity.Cookie, error)
 }
 
 func (m *mockCookieRepository) Upsert(ctx context.Context, cookie *entity.Cookie, updatedAt time.Time) error {
-	return m.upsertFunc(ctx, cookie, updatedAt)
+	if m.upsertFunc != nil {
+		return m.upsertFunc(ctx, cookie, updatedAt)
+	}
+	return nil
+}
+
+func (m *mockCookieRepository) UpsertMany(ctx context.Context, host string, cookies []*entity.Cookie, updatedAt time.Time) error {
+	if m.upsertManyFunc != nil {
+		return m.upsertManyFunc(ctx, host, cookies, updatedAt)
+	}
+	return nil
 }
 
 func (m *mockCookieRepository) FindAll(ctx context.Context) ([]*entity.Cookie, error) {
@@ -34,41 +45,50 @@ func (m *mockCookieRepository) FindByHost(ctx context.Context, host string) ([]*
 
 func TestCookieUsecase_StoreCookies(t *testing.T) {
 	tests := []struct {
-		name      string
-		cookies   []*http.Cookie
-		upsertErr error
-		wantErr   bool
+		name          string
+		cookies       []*http.Cookie
+		upsertManyErr error
+		wantErr       bool
 	}{
 		{
 			name: "正常に保存できる",
 			cookies: []*http.Cookie{
-				{Name: "cookie1", Value: "value1"},
-				{Name: "cookie2", Value: "value2"},
+				{Name: "cookie1", Value: "value1", Domain: "example.com"},
+				{Name: "cookie2", Value: "value2", Domain: "example.com"},
 			},
-			upsertErr: nil,
-			wantErr:   false,
+			upsertManyErr: nil,
+			wantErr:       false,
 		},
 		{
-			name: "Upsertでエラーが発生",
+			name: "UpsertManyでエラーが発生",
 			cookies: []*http.Cookie{
-				{Name: "cookie1", Value: "value1"},
+				{Name: "cookie1", Value: "value1", Domain: "example.com"},
 			},
-			upsertErr: errors.New("upsert error"),
-			wantErr:   true,
+			upsertManyErr: errors.New("upsert error"),
+			wantErr:       true,
 		},
 		{
-			name:      "空のCookieリスト",
-			cookies:   []*http.Cookie{},
-			upsertErr: nil,
-			wantErr:   false,
+			name:          "空のCookieリスト",
+			cookies:       []*http.Cookie{},
+			upsertManyErr: nil,
+			wantErr:       false,
+		},
+		{
+			name: "複数ドメインのCookieを保存できる",
+			cookies: []*http.Cookie{
+				{Name: "cookie1", Value: "value1", Domain: "example.com"},
+				{Name: "cookie2", Value: "value2", Domain: "another.com"},
+			},
+			upsertManyErr: nil,
+			wantErr:       false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := &mockCookieRepository{
-				upsertFunc: func(ctx context.Context, cookie *entity.Cookie, updatedAt time.Time) error {
-					return tt.upsertErr
+				upsertManyFunc: func(ctx context.Context, host string, cookies []*entity.Cookie, updatedAt time.Time) error {
+					return tt.upsertManyErr
 				},
 			}
 

@@ -38,12 +38,21 @@ func (u *cookieUsecase) StoreCookies(ctx context.Context, cookies []*http.Cookie
 
 	span.SetAttributes(attribute.Int("cookie.count", len(cookies)))
 
-	for i, cookie := range cookies {
+	// ホストごとにCookieをグループ化
+	hostCookies := make(map[string][]*entity.Cookie)
+	for _, cookie := range cookies {
 		c := entity.NewCookie(cookie)
-		if err := u.cookieRepo.Upsert(ctx, c, time.Now()); err != nil {
-			log.Printf("Failed to upsert cookie (index=%d, name=%s, domain=%s): %v", i, cookie.Name, cookie.Domain, err)
+		host := c.Domain
+		hostCookies[host] = append(hostCookies[host], c)
+	}
+
+	// 各ホストごとに一括保存
+	now := time.Now()
+	for host, cookieList := range hostCookies {
+		if err := u.cookieRepo.UpsertMany(ctx, host, cookieList, now); err != nil {
+			log.Printf("Failed to upsert cookies for host=%s: %v", host, err)
 			span.RecordError(err)
-			span.SetStatus(codes.Error, "Failed to upsert cookie")
+			span.SetStatus(codes.Error, "Failed to upsert cookies")
 			return err
 		}
 	}
