@@ -14,6 +14,9 @@ import (
 	"github.com/takumi3488/cookiejar-server/internal/config"
 	"github.com/takumi3488/cookiejar-server/internal/middleware"
 	"github.com/takumi3488/cookiejar-server/internal/telemetry"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 
 	_ "github.com/lib/pq"
 )
@@ -30,6 +33,22 @@ func main() {
 		if err := telemetry.Shutdown(ctx, tp); err != nil {
 			log.Printf("Failed to shutdown tracer: %v", err)
 		}
+	}()
+
+	// 起動時のinfoスパンを送信
+	func() {
+		ctx := context.Background()
+		tracer := otel.Tracer("cookiejar-writer")
+		_, span := tracer.Start(ctx, "application.startup")
+		defer span.End()
+
+		span.SetAttributes(
+			attribute.String("service.name", "cookiejar-writer"),
+			attribute.String("service.type", "http"),
+			attribute.Int("service.port", 3000),
+		)
+		span.SetStatus(codes.Ok, "Application started successfully")
+		log.Println("Startup info span sent")
 	}()
 
 	// データベース接続を初期化
