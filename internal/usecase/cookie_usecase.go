@@ -2,11 +2,16 @@ package usecase
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/takumi3488/cookiejar-server/internal/domain/entity"
 	"github.com/takumi3488/cookiejar-server/internal/domain/repository"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type CookieUsecase interface {
@@ -27,13 +32,23 @@ func NewCookieUsecase(cookieRepo repository.CookieRepository) CookieUsecase {
 }
 
 func (u *cookieUsecase) StoreCookies(ctx context.Context, cookies []*http.Cookie) error {
-	for _, cookie := range cookies {
+	tracer := otel.Tracer("cookiejar-server/usecase")
+	ctx, span := tracer.Start(ctx, "StoreCookies", trace.WithSpanKind(trace.SpanKindInternal))
+	defer span.End()
+
+	span.SetAttributes(attribute.Int("cookie.count", len(cookies)))
+
+	for i, cookie := range cookies {
 		c := entity.NewCookie(cookie)
 		if err := u.cookieRepo.Upsert(ctx, c, time.Now()); err != nil {
+			log.Printf("Failed to upsert cookie (index=%d, name=%s, domain=%s): %v", i, cookie.Name, cookie.Domain, err)
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "Failed to upsert cookie")
 			return err
 		}
 	}
 
+	span.SetStatus(codes.Ok, "Successfully stored all cookies")
 	return nil
 }
 
