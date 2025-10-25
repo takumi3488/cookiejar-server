@@ -15,6 +15,9 @@ import (
 	"github.com/takumi3488/cookiejar-server/internal/config"
 	"github.com/takumi3488/cookiejar-server/internal/telemetry"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	otelcodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -58,6 +61,27 @@ func main() {
 		if err := telemetry.Shutdown(ctx, tp); err != nil {
 			log.Printf("Failed to shutdown tracer: %v", err)
 		}
+	}()
+
+	// 起動時のinfoスパンを送信
+	func() {
+		ctx := context.Background()
+		tracer := otel.Tracer("cookiejar-reader")
+		_, span := tracer.Start(ctx, "application.startup")
+		defer span.End()
+
+		port := os.Getenv("GRPC_PORT")
+		if port == "" {
+			port = "50051"
+		}
+
+		span.SetAttributes(
+			attribute.String("service.name", "cookiejar-reader"),
+			attribute.String("service.type", "grpc"),
+			attribute.String("service.port", port),
+		)
+		span.SetStatus(otelcodes.Ok, "Application started successfully")
+		log.Println("Startup info span sent")
 	}()
 
 	// データベース接続を初期化
