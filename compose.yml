@@ -25,7 +25,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: cookiejar
       ALLOW_ORIGINS: http://localhost:3000
-      OTEL_EXPORTER_OTLP_ENDPOINT: jaeger:4318
+      OTEL_EXPORTER_OTLP_ENDPOINT: jaeger:4317
     ports:
       - "3000:3000"
     depends_on:
@@ -45,7 +45,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: cookiejar
       GRPC_PORT: "50051"
-      OTEL_EXPORTER_OTLP_ENDPOINT: jaeger:4318
+      OTEL_EXPORTER_OTLP_ENDPOINT: jaeger:4317
     ports:
       - "50051:50051"
     depends_on:

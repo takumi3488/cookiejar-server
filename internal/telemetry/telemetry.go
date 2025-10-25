@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -19,25 +19,25 @@ import (
 func InitTracer(serviceName string) (*sdktrace.TracerProvider, error) {
 	ctx := context.Background()
 
-	// OTLP HTTP exporter を作成（Jaeger用）
+	// OTLP gRPC exporter を作成（Jaeger用）
 	otlpEndpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	isSecure := false
 	if otlpEndpoint == "" {
-		otlpEndpoint = "jaeger:4318" // デフォルト値（HTTP）
+		otlpEndpoint = "jaeger:4317" // デフォルト値（gRPC）
 	} else {
 		// 環境変数からスキームを取り除き、HTTPSかどうかを判定
 		otlpEndpoint, isSecure = stripSchemeAndDetectSecure(otlpEndpoint)
 	}
 
 	// エクスポーターのオプションを構築
-	opts := []otlptracehttp.Option{
-		otlptracehttp.WithEndpoint(otlpEndpoint),
+	opts := []otlptracegrpc.Option{
+		otlptracegrpc.WithEndpoint(otlpEndpoint),
 	}
 	if !isSecure {
-		opts = append(opts, otlptracehttp.WithInsecure())
+		opts = append(opts, otlptracegrpc.WithInsecure())
 	}
 
-	exporter, err := otlptracehttp.New(ctx, opts...)
+	exporter, err := otlptracegrpc.New(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create OTLP exporter: %w", err)
 	}
