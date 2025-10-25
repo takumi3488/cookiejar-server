@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/takumi3488/cookiejar-server/internal/usecase"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -63,6 +64,7 @@ func (h *CookieHandler) StoreCookies(c fiber.Ctx) error {
 		log.Printf("Failed to parse JSON request body: %v", err)
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "Invalid JSON format")
+		span.SetAttributes(attribute.Int("http.response.status_code", fiber.StatusBadRequest))
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid JSON format or cookie structure",
 		})
@@ -77,11 +79,14 @@ func (h *CookieHandler) StoreCookies(c fiber.Ctx) error {
 		log.Printf("Failed to store cookies: %v", err)
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "Failed to store cookies")
+		span.SetAttributes(attribute.Int("http.response.status_code", fiber.StatusInternalServerError))
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to store cookies",
 		})
 	}
 
+	span.SetStatus(codes.Ok, "Successfully stored cookies")
+	span.SetAttributes(attribute.Int("http.response.status_code", fiber.StatusOK))
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"count":  len(cookies),
