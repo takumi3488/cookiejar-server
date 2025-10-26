@@ -119,14 +119,34 @@ Cookie情報を保存します。
 ```json
 [
   {
-    "name": "cookie_name",
-    "value": "cookie_value",
-    "domain": "example.com",
-    "path": "/",
-    "maxAge": 3600,
-    "secure": true,
-    "httpOnly": true,
-    "sameSite": "Lax"
+    "Name": "session_id",
+    "Value": "abc123xyz789sessiontoken",
+    "Domain": ".example.com",
+    "Path": "/",
+    "Expires": "2025-12-31T23:59:59Z",
+    "Secure": true,
+    "HttpOnly": true,
+    "SameSite": "Lax"
+  },
+  {
+    "Name": "user_preference",
+    "Value": "dark_mode",
+    "Domain": ".example.com",
+    "Path": "/",
+    "Expires": "0001-01-01T00:00:00Z",
+    "Secure": true,
+    "HttpOnly": false,
+    "SameSite": "Strict"
+  },
+  {
+    "Name": "tracking_id",
+    "Value": "1234567890",
+    "Domain": ".example.com",
+    "Path": "/",
+    "Expires": "0001-01-01T00:00:00Z",
+    "Secure": false,
+    "HttpOnly": false,
+    "SameSite": ""
   }
 ]
 ```
@@ -135,7 +155,7 @@ Cookie情報を保存します。
 ```json
 {
   "status": "success",
-  "count": 1
+  "count": 3
 }
 ```
 
@@ -157,9 +177,18 @@ message GetCookiesRequest {
 **レスポンス:**
 ```protobuf
 message GetCookiesResponse {
-  string cookies = 1;  // Cookie文字列 (例: "name1=value1; name2=value2")
+  string cookies = 1;
 }
 ```
+
+**レスポンス例:**
+```json
+{
+  "cookies": "session_id=abc123xyz789sessiontoken; Path=/; Domain=.example.com; Expires=Wed, 31 Dec 2025 23:59:59 GMT; HttpOnly; Secure; SameSite=Lax; user_preference=dark_mode; Path=/; Domain=.example.com; HttpOnly; Secure; SameSite=Strict; tracking_id=1234567890; Path=/; Domain=.example.com"
+}
+```
+
+※ Cookie文字列は`http.Cookie.String()`の形式で、複数のCookieは`"; "`で結合されます
 
 ## E2Eテスト
 
