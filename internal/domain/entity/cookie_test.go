@@ -32,7 +32,7 @@ func TestNewCookie(t *testing.T) {
 				Expires:  time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
 				Secure:   true,
 				HttpOnly: true,
-				SameSite: "none",
+				SameSite: http.SameSiteNoneMode,
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func TestNewCookie(t *testing.T) {
 			want: &Cookie{
 				Name:     "test",
 				Value:    "value",
-				SameSite: "lax",
+				SameSite: http.SameSiteLaxMode,
 			},
 		},
 		{
@@ -58,7 +58,7 @@ func TestNewCookie(t *testing.T) {
 			want: &Cookie{
 				Name:     "test",
 				Value:    "value",
-				SameSite: "strict",
+				SameSite: http.SameSiteStrictMode,
 			},
 		},
 		{
@@ -71,7 +71,7 @@ func TestNewCookie(t *testing.T) {
 			want: &Cookie{
 				Name:     "test",
 				Value:    "value",
-				SameSite: "default",
+				SameSite: http.SameSiteDefaultMode,
 			},
 		},
 	}
@@ -123,7 +123,7 @@ func TestCookie_ToHTTPCookie(t *testing.T) {
 				Expires:  time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
 				Secure:   true,
 				HttpOnly: true,
-				SameSite: "none",
+				SameSite: http.SameSiteNoneMode,
 			},
 			want: &http.Cookie{
 				Name:     "test",
@@ -141,7 +141,7 @@ func TestCookie_ToHTTPCookie(t *testing.T) {
 			cookie: &Cookie{
 				Name:     "test",
 				Value:    "value",
-				SameSite: "lax",
+				SameSite: http.SameSiteLaxMode,
 			},
 			want: &http.Cookie{
 				Name:     "test",
@@ -154,7 +154,7 @@ func TestCookie_ToHTTPCookie(t *testing.T) {
 			cookie: &Cookie{
 				Name:     "test",
 				Value:    "value",
-				SameSite: "strict",
+				SameSite: http.SameSiteStrictMode,
 			},
 			want: &http.Cookie{
 				Name:     "test",
@@ -167,20 +167,7 @@ func TestCookie_ToHTTPCookie(t *testing.T) {
 			cookie: &Cookie{
 				Name:     "test",
 				Value:    "value",
-				SameSite: "default",
-			},
-			want: &http.Cookie{
-				Name:     "test",
-				Value:    "value",
 				SameSite: http.SameSiteDefaultMode,
-			},
-		},
-		{
-			name: "SameSite unknown defaults to default",
-			cookie: &Cookie{
-				Name:     "test",
-				Value:    "value",
-				SameSite: "unknown",
 			},
 			want: &http.Cookie{
 				Name:     "test",

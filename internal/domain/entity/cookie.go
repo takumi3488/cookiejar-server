@@ -13,22 +13,10 @@ type Cookie struct {
 	Expires  time.Time
 	Secure   bool
 	HttpOnly bool
-	SameSite string
+	SameSite http.SameSite
 }
 
 func NewCookie(httpCookie *http.Cookie) *Cookie {
-	sameSite := ""
-	switch httpCookie.SameSite {
-	case http.SameSiteDefaultMode:
-		sameSite = "default"
-	case http.SameSiteLaxMode:
-		sameSite = "lax"
-	case http.SameSiteStrictMode:
-		sameSite = "strict"
-	case http.SameSiteNoneMode:
-		sameSite = "none"
-	}
-
 	return &Cookie{
 		Name:     httpCookie.Name,
 		Value:    httpCookie.Value,
@@ -37,12 +25,12 @@ func NewCookie(httpCookie *http.Cookie) *Cookie {
 		Expires:  httpCookie.Expires,
 		Secure:   httpCookie.Secure,
 		HttpOnly: httpCookie.HttpOnly,
-		SameSite: sameSite,
+		SameSite: httpCookie.SameSite,
 	}
 }
 
 func (c *Cookie) ToHTTPCookie() *http.Cookie {
-	cookie := &http.Cookie{
+	return &http.Cookie{
 		Name:     c.Name,
 		Value:    c.Value,
 		Domain:   c.Domain,
@@ -50,18 +38,6 @@ func (c *Cookie) ToHTTPCookie() *http.Cookie {
 		Expires:  c.Expires,
 		Secure:   c.Secure,
 		HttpOnly: c.HttpOnly,
+		SameSite: c.SameSite,
 	}
-
-	switch c.SameSite {
-	case "lax":
-		cookie.SameSite = http.SameSiteLaxMode
-	case "strict":
-		cookie.SameSite = http.SameSiteStrictMode
-	case "none":
-		cookie.SameSite = http.SameSiteNoneMode
-	default:
-		cookie.SameSite = http.SameSiteDefaultMode
-	}
-
-	return cookie
 }
