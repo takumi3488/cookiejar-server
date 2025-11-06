@@ -93,6 +93,13 @@ func main() {
 	// ルートを登録
 	app.Post("/", container.CookieHandler.StoreCookies)
 
+	// ヘルスチェックエンドポイント
+	app.Get("/health", func(c fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ok",
+		})
+	})
+
 	// ポート3000でサーバーを起動
 	log.Fatal(app.Listen(":3000"))
 }
