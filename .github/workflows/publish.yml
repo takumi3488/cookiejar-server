@@ -1,4 +1,4 @@
-name: Docker
+name: Publish
 
 on:
   push:
@@ -69,3 +69,19 @@ jobs:
           labels: ${{ steps.meta-reader.outputs.labels }}
           platforms: linux/amd64,linux/arm64
           target: reader
+
+  buf-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+      - name: Setup Buf
+        uses: bufbuild/buf-action@v1
+        with:
+          setup_only: true
+
+      - name: Push to Buf Registry
+        run: buf push
+        env:
+          BUF_TOKEN: ${{ secrets.BUF_TOKEN }}

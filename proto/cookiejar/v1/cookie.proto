@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package proto.v1;
+package cookiejar.v1;
 
 service CookieService {
   rpc GetCookies(GetCookiesRequest) returns (GetCookiesResponse);
