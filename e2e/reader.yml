@@ -51,7 +51,7 @@ steps:
   getCookiesForHost:
     desc: example.comのCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: example.com
     test: |
@@ -62,7 +62,7 @@ steps:
   getCookiesForHost2:
     desc: test.comのCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: test.com
     test: |
@@ -73,7 +73,7 @@ steps:
   getCookiesForNonExistentHost:
     desc: 存在しないホストのCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: nonexistent.com
     test: |
@@ -83,7 +83,7 @@ steps:
   getCookiesEmptyHost:
     desc: 空のホストでCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: ""
     test: |

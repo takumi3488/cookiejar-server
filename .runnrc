@@ -1,6 +1,6 @@
 # runn configuration file
 greq:
   protos:
-    - proto/v1/cookie.proto
+    - proto/cookiejar/v1/cookie.proto
   importPaths:
     - proto

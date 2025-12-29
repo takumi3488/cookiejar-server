@@ -48,7 +48,7 @@ steps:
   retrieveCookies:
     desc: ReaderサービスでCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: integration-test.com
     test: |
@@ -76,7 +76,7 @@ steps:
   retrieveSingleCookie:
     desc: 単一のCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: single-test.com
     test: |
@@ -109,7 +109,7 @@ steps:
   retrieveDomainA:
     desc: domain-a.comのCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: domain-a.com
     test: |
@@ -121,7 +121,7 @@ steps:
   retrieveDomainB:
     desc: domain-b.comのCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: domain-b.com
     test: |
@@ -151,7 +151,7 @@ steps:
   retrieveAllDomainACookies:
     desc: domain-a.comのすべてのCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: domain-a.com
     test: |
@@ -181,7 +181,7 @@ steps:
   verifyUpdatedCookie:
     desc: 更新されたCookieを取得
     greq:
-      /proto.v1.CookieService/GetCookies:
+      /cookiejar.v1.CookieService/GetCookies:
         message:
           host: domain-a.com
     test: |
