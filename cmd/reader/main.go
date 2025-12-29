@@ -11,7 +11,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	pb "github.com/takumi3488/cookiejar-server/gen/v1"
+	pb "github.com/takumi3488/cookiejar-server/gen/cookiejar/v1"
 	"github.com/takumi3488/cookiejar-server/internal/config"
 	"github.com/takumi3488/cookiejar-server/internal/telemetry"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
