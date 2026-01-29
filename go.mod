@@ -4,7 +4,7 @@ go 1.25.3
 
 require (
 	github.com/gofiber/fiber/v3 v3.0.0-rc.3
-	github.com/lib/pq v1.10.9
+	github.com/lib/pq v1.11.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.64.0
 	go.opentelemetry.io/otel v1.39.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.39.0
