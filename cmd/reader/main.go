@@ -15,11 +15,14 @@ import (
 	"github.com/takumi3488/cookiejar-server/internal/config"
 	"github.com/takumi3488/cookiejar-server/internal/telemetry"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc/filters"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelcodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
@@ -105,13 +108,21 @@ func main() {
 	// 依存性注入コンテナを初期化
 	container := config.NewContainer(dbClient)
 
-	// gRPCサーバーを初期化（otelgrpc interceptorを追加）
+	// gRPCサーバーを初期化（otelgrpc interceptorを追加、ヘルスチェックはトレース対象外）
 	grpcServer := grpc.NewServer(
-		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.StatsHandler(otelgrpc.NewServerHandler(
+			otelgrpc.WithFilter(filters.Not(filters.HealthCheck())),
+		)),
 	)
 	pb.RegisterCookieServiceServer(grpcServer, &cookieServiceServer{
 		container: container,
 	})
+
+	// ヘルスチェックサービスを登録
+	healthServer := health.NewServer()
+	healthServer.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
+	healthServer.SetServingStatus(pb.CookieService_ServiceDesc.ServiceName, healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(grpcServer, healthServer)
 
 	// gRPC reflectionを有効化（開発/テスト用）
 	reflection.Register(grpcServer)
