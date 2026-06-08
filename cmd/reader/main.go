@@ -19,6 +19,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelcodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/health"
@@ -33,10 +34,16 @@ type cookieServiceServer struct {
 }
 
 func (s *cookieServiceServer) GetCookies(ctx context.Context, req *pb.GetCookiesRequest) (*pb.GetCookiesResponse, error) {
+	// otelgrpc が生成したルート span を取得（成功時に明示的に Ok を立て、trace レベルが UNSET にならないようにする）
+	span := trace.SpanFromContext(ctx)
+
 	// hostでCookieを取得
 	cookies, err := s.container.CookieUsecase.GetCookiesByHost(ctx, req.Host)
 	if err != nil {
+		// otelgrpc は NotFound 等を span status Error にマップしないため、明示的に Error を立てる
 		log.Printf("Failed to get cookies for host %s: %v", req.Host, err)
+		span.RecordError(err)
+		span.SetStatus(otelcodes.Error, "Failed to get cookies")
 		return nil, status.Errorf(codes.NotFound, "cookies not found for host: %s", req.Host)
 	}
 
@@ -47,6 +54,7 @@ func (s *cookieServiceServer) GetCookies(ctx context.Context, req *pb.GetCookies
 		cookieStrings = append(cookieStrings, httpCookie.String())
 	}
 
+	span.SetStatus(otelcodes.Ok, "Successfully retrieved cookies")
 	return &pb.GetCookiesResponse{
 		Cookies: strings.Join(cookieStrings, "; "),
 	}, nil
