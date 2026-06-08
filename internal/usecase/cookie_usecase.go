@@ -62,9 +62,39 @@ func (u *cookieUsecase) StoreCookies(ctx context.Context, cookies []*http.Cookie
 }
 
 func (u *cookieUsecase) GetAllCookies(ctx context.Context) ([]*entity.Cookie, error) {
-	return u.cookieRepo.FindAll(ctx)
+	tracer := otel.Tracer("cookiejar-server/usecase")
+	ctx, span := tracer.Start(ctx, "GetAllCookies", trace.WithSpanKind(trace.SpanKindInternal))
+	defer span.End()
+
+	cookies, err := u.cookieRepo.FindAll(ctx)
+	if err != nil {
+		log.Printf("Failed to get all cookies: %v", err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "Failed to get all cookies")
+		return nil, err
+	}
+
+	span.SetAttributes(attribute.Int("cookie.count", len(cookies)))
+	span.SetStatus(codes.Ok, "Successfully retrieved all cookies")
+	return cookies, nil
 }
 
 func (u *cookieUsecase) GetCookiesByHost(ctx context.Context, host string) ([]*entity.Cookie, error) {
-	return u.cookieRepo.FindByHost(ctx, host)
+	tracer := otel.Tracer("cookiejar-server/usecase")
+	ctx, span := tracer.Start(ctx, "GetCookiesByHost", trace.WithSpanKind(trace.SpanKindInternal))
+	defer span.End()
+
+	span.SetAttributes(attribute.String("cookie.host", host))
+
+	cookies, err := u.cookieRepo.FindByHost(ctx, host)
+	if err != nil {
+		log.Printf("Failed to get cookies for host=%s: %v", host, err)
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "Failed to get cookies by host")
+		return nil, err
+	}
+
+	span.SetAttributes(attribute.Int("cookie.count", len(cookies)))
+	span.SetStatus(codes.Ok, "Successfully retrieved cookies by host")
+	return cookies, nil
 }
